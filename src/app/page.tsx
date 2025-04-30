@@ -164,17 +164,23 @@ export default function Home() {
           {diffs.length > 0 && (
             <ul className="space-y-3 list-disc list-inside">
               {diffs.map((item) => (
-                <li key={item.id} onClick = {() => setSelectedPr(item.id)} className="text-gray-800 dark:text-gray-200">
+                <li key={item.id} className="text-gray-800 dark:text-gray-200">
+                  <button
+                    onClick = {() => setSelectedPr(item.id)}
+                    className="flex-1 text-left text-blue-600 dark:text-blue-400 hover:underline"
+                  >
+                    PR #{item.id}: {item.description}
+                  </button>
                   <a
                     href={item.url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-600 dark:text-blue-400 hover:underline"
+                    title = "View on Github"
                   >
-                    PR #{item.id}:
                   </a>
                   <span className="ml-2">{item.description}</span>
-                  {/* We won't display the full diff here, just the description */}
+                  {/* won't display the full diff here, just description */}
                 </li>
               ))}
             </ul>
