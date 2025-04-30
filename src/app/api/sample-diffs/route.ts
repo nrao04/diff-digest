@@ -39,6 +39,15 @@ export async function GET(request: Request) {
         if (isNaN(prNum)) {
             return NextResponse.json({error: 'Invalid pr parameter'}, {status: 400});
         }
+
+        // fetch raw diff text from GitHub
+        const diffResp = await octokit.pulls.get({
+            owner,
+            repo,
+            pull_req_num: prNum,
+            mediaType: {format: 'diff'},
+        });
+        const diff = diffResp.data as unknown as string;
     }
 
     try {
