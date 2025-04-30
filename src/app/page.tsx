@@ -26,6 +26,12 @@ export default function Home() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [nextPage, setNextPage] = useState<number | null>(null);
   const [initialFetchDone, setInitialFetchDone] = useState<boolean>(false);
+  // state for which PR is selected for streaming
+  const [selectedPr, setSelectedPr]     = useState<string | null>(null);
+  const [devNotes, setDevNotes]         = useState<string[]>([]);    // developer notes
+  const [mktNotes, setMktNotes]         = useState<string[]>([]);    // marketing notes
+  const [isStreaming, setIsStreaming]   = useState<boolean>(false);  // streaming flag
+  const [streamError, setStreamError]   = useState<string | null>(null); // stream errors
 
   const fetchDiffs = async (page: number) => {
     setIsLoading(true);
