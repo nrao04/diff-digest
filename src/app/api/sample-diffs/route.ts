@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { Octokit } from '@octokit/rest';
 import { Readable } from "stream"
 import { OpenAI } from 'openai';
+
+export const runtime = "nodejs"
 // Initialize Octokit. Use GITHUB_TOKEN environment variable for authentication if available.
 // Unauthenticated requests are subject to stricter rate limits.
 const octokit = new Octokit({
