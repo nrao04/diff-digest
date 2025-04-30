@@ -31,6 +31,16 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: 'Invalid page parameter' }, { status: 400 });
     }
 
+    // skip norm. list logic if pr num provided
+    const prParam = searchParams.get('pr');
+    if (prParam) {
+        // validate pr num
+        const prNum = parseInt(prParam, 10);
+        if (isNaN(prNum)) {
+            return NextResponse.json({error: 'Invalid pr parameter'}, {status: 400});
+        }
+    }
+
     try {
         // Fetch closed pull requests (includes merged)
         const { data: closedPrs, headers } = await octokit.pulls.list({
