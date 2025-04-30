@@ -48,6 +48,25 @@ export async function GET(request: Request) {
             mediaType: {format: 'diff'},
         });
         const diff = diffResp.data as unknown as string;
+
+        // ask OpenAI for streaming completion
+        // let sys. set the role
+        // let user send diff & instr. for JSON output
+        const stream = await openai.chat.completions.create ({
+            model: 'o4-mini',
+            stream: true,
+            messages: [
+                { role: 'system', content: 'You are a helpful assistant that writes release notes.' },
+                {
+                    role: 'user',
+                    content:
+                        `Here is a code diff:\n${diff}\n\n` +
+                        `Emit a stream of JSON lines, each one like:\n` +
+                        `  {"tone":"developer","text":"…"}\n` +
+                        `  {"tone":"marketing","text":"…"}`,
+                },
+            ],
+        });
     }
 
     try {
