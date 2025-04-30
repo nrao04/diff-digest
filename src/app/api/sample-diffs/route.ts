@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { Octokit } from '@octokit/rest';
+import { Readable } from "stream"
 import { OpenAI } from 'openai';
 // Initialize Octokit. Use GITHUB_TOKEN environment variable for authentication if available.
 // Unauthenticated requests are subject to stricter rate limits.
@@ -13,6 +14,19 @@ const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY})
 // Default repository details (can be overridden by environment variables)
 const DEFAULT_OWNER = 'openai';
 const DEFAULT_REPO = 'openai-node';
+
+// helper funct. to turn node readable into web readable stream
+function nodeToWeb(readable: Readable): ReadableStream<Uint8Array> {
+    return new ReadableStream({
+      start(controller) {
+        readable.on("data", (chunk: Buffer) => {
+          controller.enqueue(new Uint8Array(chunk));
+        });
+        readable.on("end", () => controller.close());
+        readable.on("error", err => controller.error(err));
+      }
+    });
+  }
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
@@ -44,7 +58,7 @@ export async function GET(request: Request) {
         const diffResp = await octokit.pulls.get({
             owner,
             repo,
-            pull_req_num: prNum,
+            pull_number: prNum,
             mediaType: {format: 'diff'},
         });
         const diff = diffResp.data as unknown as string;
@@ -52,7 +66,7 @@ export async function GET(request: Request) {
         // ask OpenAI for streaming completion
         // let sys. set the role
         // let user send diff & instr. for JSON output
-        const stream = await openai.chat.completions.create ({
+        const nodeStream = await openai.chat.completions.create ({
             model: 'o4-mini',
             stream: true,
             messages: [
@@ -68,10 +82,16 @@ export async function GET(request: Request) {
             ],
         });
 
+        const webStream = nodeToWeb(nodeStream)
+
         // return llm streamed response as SSE
-        return new Response(stream, {
-            headers: {'Content-Type': 'text/event-stream'},
-        })
+        return new Response(webStream, {
+            headers: {
+                'Content-Type': 'text/event-stream',
+                'Cache-Control': 'no-cache, no-transform',
+                'Connection':   'keep-alive',
+            },
+        });
     }
 
     try {
