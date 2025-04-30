@@ -164,7 +164,7 @@ export default function Home() {
           {diffs.length > 0 && (
             <ul className="space-y-3 list-disc list-inside">
               {diffs.map((item) => (
-                <li key={item.id} className="text-gray-800 dark:text-gray-200">
+                <li key={item.id} onClick = {() => setSelectedPr(item.id)} className="text-gray-800 dark:text-gray-200">
                   <a
                     href={item.url}
                     target="_blank"
@@ -194,6 +194,7 @@ export default function Home() {
                 disabled={isLoading}
               >
                 Load More (Page {nextPage})
+                
               </button>
             </div>
           )}
