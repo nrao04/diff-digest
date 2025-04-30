@@ -104,6 +104,21 @@ export default function Home() {
       }
     };
 
+    es.onerror = () => {
+      es.close();
+      setIsStreaming(false);
+      setStreamError("Stream error. Try selecting again.");
+    };
+      
+    // listen for custom "end" event to stop spinner
+    es.addEventListener("end", () => {
+      setIsStreaming(false);
+    });
+      
+    return () => es.close();
+
+  }, [selectedPr]);
+
 
   return (
     <main className="flex min-h-screen flex-col items-center p-12 sm:p-24">
