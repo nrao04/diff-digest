@@ -1,11 +1,14 @@
 import { NextResponse } from 'next/server';
 import { Octokit } from '@octokit/rest';
-
+import { OpenAI } from 'openai';
 // Initialize Octokit. Use GITHUB_TOKEN environment variable for authentication if available.
 // Unauthenticated requests are subject to stricter rate limits.
 const octokit = new Octokit({
     auth: process.env.GITHUB_TOKEN,
 });
+
+// init. OpenAI client
+const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY})
 
 // Default repository details (can be overridden by environment variables)
 const DEFAULT_OWNER = 'openai';
