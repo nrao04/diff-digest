@@ -194,8 +194,37 @@ export default function Home() {
                 disabled={isLoading}
               >
                 Load More (Page {nextPage})
-                
-              </button>
+                </button>
+            </div>
+          )}
+          {selectedPr && (
+            <div className="mt-8 p-4 bg-gray-100 dark:bg-gray-700 rounded">
+              <h2 className="text-2xl font-semibold mb-4">
+                Notes for PR #{selectedPr}
+              </h2>
+
+              {/* spinner or streaming indicator */}
+              {isStreaming && <p>Streaming notes…</p>}
+              {/* stream error */}
+              {streamError && (
+                <p className="text-red-600 dark:text-red-400">Error: {streamError}</p>
+              )}
+
+              {/* two-column notes */}
+              <div className="grid grid-cols-2 gap-6 mt-4">
+                <div>
+                  <h3 className="font-semibold mb-2">Developer Notes</h3>
+                  {devNotes.map((note, i) => (
+                    <p key={i}>• {note}</p>
+                  ))}
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-2">Marketing Notes</h3>
+                  {mktNotes.map((note, i) => (
+                    <p key={i}>• {note}</p>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
         </div>
