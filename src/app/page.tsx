@@ -179,7 +179,6 @@ export default function Home() {
                     title = "View on Github"
                   >
                   </a>
-                  <span className="ml-2">{item.description}</span>
                   {/* won't display the full diff here, just description */}
                 </li>
               ))}

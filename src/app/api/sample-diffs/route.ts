@@ -54,7 +54,7 @@ export async function GET(request: Request) {
         // ask OpenAI for streaming completion
         // let sys. set the role
         // let user send diff & instr. for JSON output
-        const stream = await openai.chat.completions.create ({
+        const aiStream = await openai.chat.completions.create ({
             model: 'o4-mini',
             stream: true,
             messages: [
@@ -70,8 +70,25 @@ export async function GET(request: Request) {
             ],
         });
 
+        // wrap it in Web ReadableStream for SSE
+        const encoder = new TextEncoder();
+        const sseStream = new ReadableStream<Uint8Array>({
+        async start(controller) {
+            try {
+            for await (const part of aiStream) {
+                // part is { tone: string, text: string }
+                const sseLine = `data: ${JSON.stringify(part)}\n\n`;
+                controller.enqueue(encoder.encode(sseLine));
+            }
+            controller.close();
+            } catch (err) {
+            controller.error(err);
+            }
+        },
+        });
+
         // return llm streamed response as SSE
-        return new Response(stream, {
+        return new Response(sseStream, {
             headers: {
                 'Content-Type': 'text/event-stream',
                 'Cache-Control': 'no-cache, no-transform',
