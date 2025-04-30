@@ -67,6 +67,11 @@ export async function GET(request: Request) {
                 },
             ],
         });
+
+        // return llm streamed response as SSE
+        return new Response(stream, {
+            headers: {'Content-Type': 'text/event-stream'},
+        })
     }
 
     try {
