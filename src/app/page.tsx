@@ -1,6 +1,7 @@
 "use client"; // Mark as a Client Component
 
-import { useState } from "react";
+// add useEffect
+import { useState, useEffect } from "react";
 
 // Define the expected structure of a diff object
 interface DiffItem {
