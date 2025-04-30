@@ -3,7 +3,6 @@ import { Octokit } from '@octokit/rest';
 import { Readable } from "stream"
 import { OpenAI } from 'openai';
 
-export const runtime = "nodejs"
 // Initialize Octokit. Use GITHUB_TOKEN environment variable for authentication if available.
 // Unauthenticated requests are subject to stricter rate limits.
 const octokit = new Octokit({
@@ -16,19 +15,6 @@ const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY})
 // Default repository details (can be overridden by environment variables)
 const DEFAULT_OWNER = 'openai';
 const DEFAULT_REPO = 'openai-node';
-
-// helper funct. to turn node readable into web readable stream
-function nodeToWeb(readable: Readable): ReadableStream<Uint8Array> {
-    return new ReadableStream({
-      start(controller) {
-        readable.on("data", (chunk: Buffer) => {
-          controller.enqueue(new Uint8Array(chunk));
-        });
-        readable.on("end", () => controller.close());
-        readable.on("error", err => controller.error(err));
-      }
-    });
-  }
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
@@ -68,7 +54,7 @@ export async function GET(request: Request) {
         // ask OpenAI for streaming completion
         // let sys. set the role
         // let user send diff & instr. for JSON output
-        const nodeStream = await openai.chat.completions.create ({
+        const stream = await openai.chat.completions.create ({
             model: 'o4-mini',
             stream: true,
             messages: [
@@ -84,10 +70,8 @@ export async function GET(request: Request) {
             ],
         });
 
-        const webStream = nodeToWeb(nodeStream)
-
         // return llm streamed response as SSE
-        return new Response(webStream, {
+        return new Response(stream, {
             headers: {
                 'Content-Type': 'text/event-stream',
                 'Cache-Control': 'no-cache, no-transform',
