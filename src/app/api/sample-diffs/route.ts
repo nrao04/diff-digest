@@ -61,11 +61,18 @@ export async function GET(request: Request) {
                 { role: 'system', content: 'You are a helpful assistant that writes release notes.' },
                 {
                     role: 'user',
-                    content:
-                        `Here is a code diff:\n${diff}\n\n` +
-                        `Emit a stream of JSON lines, each one like:\n` +
-                        `  {"tone":"developer","text":"…"}\n` +
-                        `  {"tone":"marketing","text":"…"}`,
+                    content: [
+                        "Here is a Git diff:\n",
+                        diff,
+                        "\n\n",
+                        "Generate two parallel release-note summaries:\n",
+                        "  1. Developer-focused: concise, technical, highlights what changed and why.\n",
+                        "  2. Marketing-focused: concise, user-centric, highlights benefit in plain language.\n\n",
+                        "Stream them back as JSON lines, each like: ",
+                        "{\"tone\":\"developer\",\"text\":\"…\"}",
+                        " or ",
+                        "{\"tone\":\"marketing\",\"text\":\"…\"}"
+                      ].join('')
                 },
             ],
         });
@@ -73,18 +80,34 @@ export async function GET(request: Request) {
         // wrap it in Web ReadableStream for SSE
         const encoder = new TextEncoder();
         const sseStream = new ReadableStream<Uint8Array>({
-        async start(controller) {
-            try {
-            for await (const part of aiStream) {
-                // part is { tone: string, text: string }
-                const sseLine = `data: ${JSON.stringify(part)}\n\n`;
-                controller.enqueue(encoder.encode(sseLine));
+            async start(controller) {
+                try {
+                // Collect tokens until we hit a newline, then emit one full JSON‐line per SSE event
+                let buffer = "";
+                for await (const chunk of aiStream) {
+                    const delta = chunk.choices?.[0]?.delta?.content;
+                    if (!delta) continue;
+                    buffer += delta;
+
+                    // Split on newline, keep the last (possibly partial) line in buffer
+                    const parts = buffer.split("\n");
+                    buffer = parts.pop()!;
+                    for (const line of parts) {
+                    const trimmed = line.trim();
+                    if (!trimmed) continue;
+                    controller.enqueue(encoder.encode(`data: ${trimmed}\n\n`));
+                    }
+                }
+                // flush any remaining buffer
+                if (buffer.trim()) {
+                    controller.enqueue(encoder.encode(`data: ${buffer.trim()}\n\n`));
+                }
+                controller.enqueue(encoder.encode(`event: end\ndata: done\n\n`));
+                controller.close();
+                } catch (err) {
+                controller.error(err);
+                }
             }
-            controller.close();
-            } catch (err) {
-            controller.error(err);
-            }
-        },
         });
 
         // return llm streamed response as SSE
@@ -92,7 +115,7 @@ export async function GET(request: Request) {
             headers: {
                 'Content-Type': 'text/event-stream',
                 'Cache-Control': 'no-cache, no-transform',
-                'Connection':   'keep-alive',
+                Connection:   'keep-alive',
             },
         });
     }

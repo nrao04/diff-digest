@@ -103,17 +103,23 @@ export default function Home() {
         // ignore bad JSON
       }
     };
-
-    es.onerror = () => {
-      es.close();
-      setIsStreaming(false);
-      setStreamError("Stream error. Try selecting again.");
-    };
       
     // listen for custom "end" event to stop spinner
     es.addEventListener("end", () => {
       setIsStreaming(false);
+      es.close()
     });
+
+    // only treat *real* errors as errors
+    es.onerror = (err) => {
+      if (es.readyState === EventSource.CLOSED) {
+        // connection closed normally; do nothing
+        return;
+      }
+      es.close();
+      setIsStreaming(false);
+      setStreamError("Stream error. Try selecting again.");
+    };
       
     return () => es.close();
 
