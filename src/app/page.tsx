@@ -79,7 +79,7 @@ export default function Home() {
     }
   };
 
-    // when selectedPr changes, open an EventSource SSE
+  // when selectedPr changes, open an EventSource SSE
   useEffect(() => {
     if (!selectedPr) {
       return;
@@ -90,6 +90,20 @@ export default function Home() {
     setMktNotes([]);
     setStreamError(null);
     setIsStreaming(true);
+
+    // connect to streaming endpoint
+    const es = new EventSource(`/api/sample-diffs?pr=${selectedPr}`);
+
+    es.onmessage = (e) => {
+      try {
+        const { tone, text } = JSON.parse(e.data);
+        if (tone === "developer") setDevNotes(d => [...d, text]);
+        else setMktNotes(m => [...m, text]);
+      } catch {
+        // ignore bad JSON
+      }
+    };
+
 
   return (
     <main className="flex min-h-screen flex-col items-center p-12 sm:p-24">
