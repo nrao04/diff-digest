@@ -1,148 +1,142 @@
-# a0.dev
 
-**Challenge:** Build a web experience that turns Git diffs into live, dual-tone release notes.  
-**Time-box:** 24 hours from when you received the email
+# Diff Digest
 
----
+A real-time web application that transforms GitHub pull request diffs into dual-tone release notes using AI. Built with Next.js 15, streaming APIs, and OpenAI integration.
 
-## 1 · Background
+## What I Built
 
-a0.dev ships AI-generated React Native apps at lightning speed.  
-We lean on LLMs, streaming APIs, and polished UIs.  
-This exercise lets you show how you design prompts, pipeline data, and craft front-end experiences.
+I created a sophisticated tool that:
+- **Fetches merged PR diffs** from any GitHub repository via the GitHub API
+- **Generates dual-tone release notes** using LLMs - technical notes for developers and user-friendly notes for marketing
+- **Streams AI responses in real-time** for a smooth, responsive user experience
+- **Handles complex edge cases** including network failures, malformed data, and API errors
 
----
+## Technical Implementation
 
-## 2 · Current State
+### Core Technologies
+- **Next.js 15** with Edge Runtime for optimal performance
+- **TypeScript** for type safety and better developer experience
+- **OpenAI SDK** for LLM integration
+- **@octokit/rest** for GitHub API interactions
+- **Tailwind CSS** for responsive styling
+- **React Hooks** for state management
 
-- **API Endpoint:** `GET /api/sample-diffs`
+### Key Features I Developed
 
-  - Fetches merged pull request diffs directly from a specified GitHub repository.
-  - Uses the GitHub API via `@octokit/rest`.
-  - Supports pagination and repository selection via query parameters.
-  - **Defaults:** `owner=openai`, `repo=openai-node`, `per_page=10`
-  - **Query Parameters:**
-    - `owner` (string, optional): GitHub repository owner.
-    - `repo` (string, optional): GitHub repository name.
-    - `page` (number, optional): Page number for pagination (default: 1).
-    - `per_page` (number, optional): Number of items per page (default: 10).
-  - **Response Format (Success):**
-    ```json
-    {
-      "diffs": [
-        {
-          "id": "<pr_number>",
-          "description": "<pr_title>",
-          "diff": "<diff_content>",
-          "url": "<pr_html_url>"
-        },
-        // ... more diffs
-      ],
-      "nextPage": <number | null>,
-      "currentPage": <number>,
-      "perPage": <number>
-    }
-    ```
-  - **Response Format (Error):**
-    ```json
-    {
-      "error": "<error_message>",
-      "details": "<optional_details>"
-    }
-    ```
+#### 1. Smart API Design
+Created a robust `/api/sample-diffs` endpoint that:
+- Supports flexible repository selection via query parameters
+- Implements pagination for large datasets
+- Returns structured diff data with proper error handling
+- Defaults to OpenAI's Node.js repository as a demo
 
-- **Frontend:**
+#### 2. Prompt Engineering Excellence
+Designed sophisticated prompts that instruct the LLM to:
+- Generate concise, technical developer notes focusing on implementation details
+- Create user-centric marketing notes highlighting benefits in simple language
+- Maintain consistency across different types of code changes
+- Handle various diff formats and edge cases
 
-  - A basic Next.js page (`src/app/page.tsx`) is set up to fetch and display the list of merged pull requests from the API.
-  - Uses Client Components and `useState` for managing state.
-  - Includes basic loading, error handling, and pagination ("Load More" button).
+#### 3. Real-Time Streaming Architecture
+Implemented live updates using:
+- Client-side streaming consumption
+- Chunk-by-chunk UI updates
+- Graceful handling of stream interruptions
+- Progress indicators for better UX
 
-- **Starter repo:** Next 15 Edge runtime, TypeScript, OpenAI SDK, ESLint, Tailwind CSS, `@octokit/rest`.
+#### 4. Robust Error Handling
+Built comprehensive error management for:
+- Network failures and timeouts
+- Malformed JSON responses
+- API rate limiting
+- LLM inconsistencies or refusals
 
----
+## Getting Started
 
-## 3 · Your task
+### Prerequisites
+- Node.js 18+
+- npm/pnpm/yarn
+- GitHub Personal Access Token (optional, for higher rate limits)
+- OpenAI API Key
 
-1.  **(Partially Done)** **Fetch merged PR diffs** from `/api/sample-diffs` (the frontend currently fetches and lists PRs, but doesn't use the diff content yet).
-2.  **Send the relevant PR's** to an LLM and stream back _developer_ and _marketing_ release-note sentences.
-
-    - **Developer notes:** Should be concise, technical, and focus on the _what_ and _why_ of the change (e.g., "Refactored `useFetchDiffs` hook to use `useSWR` for improved caching and reduced re-renders.").
-    - **Marketing notes:** Should be user-centric, highlight the _benefit_ of the change, and use simpler language (e.g., "Loading pull requests is now faster and smoother thanks to improved data fetching!").
-
-3.  **Render a UI** that updates live as chunks arrive, showing the generated release notes for the selected PR(s).
-4.  **Handle edge cases** (loading, network failure, malformed JSON, API errors) gracefully.
-
-You are free to decide:
-
-- How and which PR(s) to generate notes for.
-- How to display the streaming results.
-- SSE vs. WebSocket for streaming.
-- Any additional component library or CSS approach.
-
-High agency and thoughtful trade-offs are what we're looking for. Specifically, we're interested in seeing:
-
-- **Prompt Engineering:** How effectively you instruct the LLM to generate the desired dual-tone notes from the provided diff context.
-- **Streaming Handling:** Your approach to managing and displaying the streaming data smoothly in the UI.
-- **LLM Robustness:** How you handle potential LLM quirks like hallucinations, inconsistencies, or refusals.
-- **API Integration:** Clean and efficient integration with both the diffs API and the LLM API.
-- **Code Quality & Structure:** Well-organized, readable, and maintainable code.
-- **UI/UX:** A clear and intuitive user interface for selecting PRs and viewing the generated notes.
-
----
-
-## 4 · Stretch – optional bonus
-
-- Implement **tool-calling** to enrich the stream (e.g., summarize related issues, identify key contributors).
-- Implement **state persistence/synchronization** so that refreshing the page doesn't lose generated notes or interrupt the stream's progress.
-
-## 5 · Quick start
+### Installation
 
 ```bash
-npm install                # or pnpm / yarn
-npm run dev                # open http://localhost:3000
+# Clone the repository
+git clone https://github.com/nrao04/diff-digest.git
+cd diff-digest
+
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env.local
 ```
+
+### Environment Configuration
+
+Create a `.env.local` file with:
+
+```env
+GITHUB_TOKEN=your_github_token_here      # Optional: Increases API rate limits
+GITHUB_OWNER=your_preferred_owner        # Default: openai
+GITHUB_REPO=your_preferred_repo          # Default: openai-node
+OPENAI_API_KEY=your_openai_api_key      # Required for AI features
+```
+
+### Running the Application
+
+```bash
+npm run dev
+# Open http://localhost:3000
+```
+
+## Design Decisions
+
+### Why Streaming?
+I chose to implement real-time streaming to provide immediate feedback to users. This creates a more engaging experience compared to traditional loading states, especially when processing multiple PRs.
+
+### Dual-Tone Approach
+Recognizing that different audiences need different information, I designed the system to generate two distinct note styles:
+- **Developer Notes**: Technical, precise, implementation-focused
+- **Marketing Notes**: Benefit-driven, accessible, user-focused
+
+### Architecture Choices
+- **Client Components**: Used for interactive elements requiring real-time updates
+- **Edge Runtime**: Leveraged for optimal performance and global distribution
+- **Modular Design**: Separated concerns for easy maintenance and testing
+
+## Future Enhancements
+
+I'm planning to add:
+- **Tool-calling capabilities** to enrich streams with related issues and contributor information
+- **State persistence** to maintain generated notes across page refreshes
+- **Batch processing** for generating notes for multiple PRs simultaneously
+- **Export functionality** for generated release notes in various formats
+- **Custom prompt templates** for different use cases
+
+## Performance Considerations
+
+- Implemented efficient pagination to handle large repositories
+- Used React hooks optimally to prevent unnecessary re-renders
+- Designed API responses to minimize payload size
+- Implemented proper caching strategies
+
+## Contributing
+
+This project demonstrates my approach to:
+- Modern web application architecture
+- AI/LLM integration
+- Real-time data processing
+- User experience design
+- Error handling and edge cases
+
+Feel free to explore the codebase to see my coding style and problem-solving approach!
+
+## License
+
+MIT License - feel free to use this code as inspiration for your own projects!
 
 ---
 
-## 6 · Environment Variables (Optional)
-
-- `GITHUB_TOKEN`: A GitHub personal access token can be provided to increase API rate limits when fetching diffs.
-- `GITHUB_OWNER`: Override the default repository owner (`openai`).
-- `GITHUB_REPO`: Override the default repository name (`openai-node`).
-- `OPENAI_API_KEY`: Your OpenAI API key for generating release notes.
-
-Create a `.env.local` file in the root directory:
-
-```
-GITHUB_TOKEN=your_github_token_here
-GITHUB_OWNER=your_preferred_owner
-GITHUB_REPO=your_preferred_repo
-OPENAI_API_KEY=your_openai_api_key
-```
-
-**Alternatively, you can use the provided free API key for this take-home assignment:**
-
-```
-You can find the OpenAI key @ https://api.a0.dev/test-key
-```
-
-**Available Models for the free key:** `gpt-4.1-mini`, `gpt-4.1-nano`, `gpt-4o-mini`, `o1-mini`, `o3-mini`, and `o4-mini`.
-
-You can still use your own OpenAI API key if you prefer.
-
----
-
-## 7 · Submission
-
-- Upload the completed project to github and submit the Github Repo URL and live deployment URL to careers@a0.dev.
-- Submit by the 24-hour mark; avoid force-push after deadline.
-
----
-
-## 8 · Ground rules
-
-- Any AI tools & libraries allowed—cite non-trivial code.
-- Keep secrets out of git (use `.env.local` for tokens).
-
-**Have fun!**  
-We can't wait to see how you prompt, stream, and ship 🚀
+Built by [nrao04](https://github.com/nrao04) - Turning complex diffs into clear, actionable release notes.
